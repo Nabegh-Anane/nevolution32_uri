@@ -2,32 +2,126 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>TikTok OAuth Redirect</title>
+  <title>TikTok OAuth Secure Viewer</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f8f8f8; }
-    code { background: #eee; padding: 5px; display: block; margin-top: 10px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f3f3;
+      padding: 40px;
+      color: #333;
+    }
+    h2 {
+      color: #444;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      font-weight: bold;
+    }
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 5px;
+    }
+    input[readonly] {
+      background-color: #f0f0f0;
+    }
+    button {
+      padding: 10px 15px;
+      background: #1e88e5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1565c0;
+    }
+    .hidden {
+      display: none;
+    }
+    .copy-btn {
+      margin-top: 5px;
+      background: #4caf50;
+    }
   </style>
 </head>
 <body>
-  <h2>🎉 TikTok OAuth Redirect Handler</h2>
-  <p>Extracted TikTok auth code and state:</p>
-  <p><strong>Auth Code:</strong></p>
-  <code id="code">Loading...</code>
-  <p><strong>State:</strong></p>
-  <code id="state">Loading...</code>
+  <div class="container">
+    <h2>🔐 TikTok Credentials Viewer</h2>
+
+    <div class="input-group">
+      <label for="password">Enter Password:</label>
+      <input type="password" id="password" placeholder="Enter password to unlock">
+      <button onclick="unlock()">Unlock</button>
+    </div>
+
+    <div id="secure-section" class="hidden">
+      <div class="input-group">
+        <label>Client Key</label>
+        <input type="text" id="clientKey" readonly>
+        <button class="copy-btn" onclick="copy('clientKey')">📋 Copy</button>
+      </div>
+
+      <div class="input-group">
+        <label>Client Secret</label>
+        <input type="text" id="clientSecret" readonly>
+        <button class="copy-btn" onclick="copy('clientSecret')">📋 Copy</button>
+      </div>
+
+      <div class="input-group">
+        <label>Access Token</label>
+        <input type="text" id="accessToken" readonly>
+        <button class="copy-btn" onclick="copy('accessToken')">📋 Copy</button>
+      </div>
+
+      <div class="input-group">
+        <label>Refresh Token</label>
+        <input type="text" id="refreshToken" readonly>
+        <button class="copy-btn" onclick="copy('refreshToken')">📋 Copy</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    const state = params.get('state');
+    const credentials = {
+      clientKey: 'your_client_key_here',
+      clientSecret: 'your_client_secret_here',
+      accessToken: 'your_access_token_here',
+      refreshToken: 'your_refresh_token_here'
+    };
 
-    document.getElementById('code').textContent = code || 'No code found';
-    document.getElementById('state').textContent = state || 'No state found';
+    function unlock() {
+      const password = document.getElementById('password').value;
+      if (password === '2007') {
+        document.getElementById('secure-section').classList.remove('hidden');
+        document.getElementById('clientKey').value = credentials.clientKey;
+        document.getElementById('clientSecret').value = credentials.clientSecret;
+        document.getElementById('accessToken').value = credentials.accessToken;
+        document.getElementById('refreshToken').value = credentials.refreshToken;
+      } else {
+        alert('❌ Wrong password!');
+      }
+    }
 
-    // Optional: Auto-copy to clipboard
-    if (code) {
-      navigator.clipboard.writeText(code).then(() => {
-        console.log('Code copied to clipboard!');
+    function copy(id) {
+      const input = document.getElementById(id);
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value).then(() => {
+        alert(`${id} copied to clipboard ✅`);
       });
     }
   </script>
