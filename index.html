@@ -1,129 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>TikTok OAuth Secure Viewer</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TikTok OAuth Callback</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f3f3f3;
-      padding: 40px;
-      color: #333;
-    }
-    h2 {
-      color: #444;
-    }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    }
-    .input-group {
-      margin-bottom: 15px;
-    }
-    label {
-      font-weight: bold;
-    }
-    input[type="text"],
-    input[type="password"] {
-      width: 100%;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-top: 5px;
-    }
-    input[readonly] {
-      background-color: #f0f0f0;
-    }
-    button {
-      padding: 10px 15px;
-      background: #1e88e5;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1565c0;
+      padding: 2rem;
+      background-color: #f9f9f9;
     }
     .hidden {
       display: none;
     }
-    .copy-btn {
-      margin-top: 5px;
-      background: #4caf50;
+    .credentials {
+      margin-top: 1rem;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 0.5rem;
+      font-family: monospace;
+    }
+    input[type="password"] {
+      margin-top: 1rem;
+      padding: 0.5rem;
+    }
+    button {
+      margin-top: 0.5rem;
+      padding: 0.5rem 1rem;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>🔐 TikTok Credentials Viewer</h2>
+  <h2>🔐 TikTok OAuth Callback Page</h2>
 
-    <div class="input-group">
-      <label for="password">Enter Password:</label>
-      <input type="password" id="password" placeholder="Enter password to unlock">
-      <button onclick="unlock()">Unlock</button>
-    </div>
+  <label for="password">Enter password to view credentials:</label>
+  <input type="password" id="password" placeholder="Enter password" />
+  <button onclick="unlock()">Unlock</button>
 
-    <div id="secure-section" class="hidden">
-      <div class="input-group">
-        <label>Client Key</label>
-        <input type="text" id="clientKey" readonly>
-        <button class="copy-btn" onclick="copy('clientKey')">📋 Copy</button>
-      </div>
+  <div id="creds" class="credentials hidden">
+    <label>Client Key:</label>
+    <input type="text" id="clientKey" readonly onclick="this.select()" />
 
-      <div class="input-group">
-        <label>Client Secret</label>
-        <input type="text" id="clientSecret" readonly>
-        <button class="copy-btn" onclick="copy('clientSecret')">📋 Copy</button>
-      </div>
+    <label>Client Secret:</label>
+    <input type="text" id="clientSecret" readonly onclick="this.select()" />
 
-      <div class="input-group">
-        <label>Access Token</label>
-        <input type="text" id="accessToken" readonly>
-        <button class="copy-btn" onclick="copy('accessToken')">📋 Copy</button>
-      </div>
+    <label>Access Token:</label>
+    <input type="text" id="accessToken" readonly onclick="this.select()" />
 
-      <div class="input-group">
-        <label>Refresh Token</label>
-        <input type="text" id="refreshToken" readonly>
-        <button class="copy-btn" onclick="copy('refreshToken')">📋 Copy</button>
-      </div>
-    </div>
+    <label>Refresh Token:</label>
+    <input type="text" id="refreshToken" readonly onclick="this.select()" />
   </div>
 
   <script>
-    const credentials = {
-      clientKey: 'your_client_key_here',
-      clientSecret: 'your_client_secret_here',
-      accessToken: 'your_access_token_here',
-      refreshToken: 'your_refresh_token_here'
+    const env = {
+      clientKey: '{{CLIENT_KEY}}',
+      clientSecret: '{{CLIENT_SECRET}}',
+      redirectUri: '{{REDIRECT_URI}}'
     };
 
-    function unlock() {
-      const password = document.getElementById('password').value;
-      if (password === '2007') {
-        document.getElementById('secure-section').classList.remove('hidden');
-        document.getElementById('clientKey').value = credentials.clientKey;
-        document.getElementById('clientSecret').value = credentials.clientSecret;
-        document.getElementById('accessToken').value = credentials.accessToken;
-        document.getElementById('refreshToken').value = credentials.refreshToken;
-      } else {
-        alert('❌ Wrong password!');
+    let oauthData = {
+      accessToken: '',
+      refreshToken: ''
+    };
+
+    async function getTokens(code) {
+      try {
+        const response = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+            client_key: env.clientKey,
+            client_secret: env.clientSecret,
+            code: code,
+            grant_type: 'authorization_code',
+            redirect_uri: env.redirectUri
+          })
+        });
+
+        const data = await response.json();
+        if (data.access_token && data.refresh_token) {
+          oauthData.accessToken = data.access_token;
+          oauthData.refreshToken = data.refresh_token;
+        } else {
+          console.error('Failed to retrieve tokens:', data);
+          alert('⚠️ Error retrieving tokens. Check the console.');
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+        alert('❌ Network or TikTok API error');
       }
     }
 
-    function copy(id) {
-      const input = document.getElementById(id);
-      input.select();
-      input.setSelectionRange(0, 99999);
-      navigator.clipboard.writeText(input.value).then(() => {
-        alert(`${id} copied to clipboard ✅`);
-      });
+    async function main() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+
+      if (code) {
+        await getTokens(code);
+      }
     }
+
+    function unlock() {
+      const pw = document.getElementById('password').value;
+      if (pw === '2007') {
+        document.getElementById('creds').classList.remove('hidden');
+        document.getElementById('clientKey').value = env.clientKey;
+        document.getElementById('clientSecret').value = env.clientSecret;
+        document.getElementById('accessToken').value = oauthData.accessToken || 'No token retrieved';
+        document.getElementById('refreshToken').value = oauthData.refreshToken || 'No token retrieved';
+      } else {
+        alert('🔐 Incorrect password.');
+      }
+    }
+
+    window.onload = main;
   </script>
 </body>
 </html>
