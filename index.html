@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TikTok OAuth Redirect</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f8f8f8; }
+    code { background: #eee; padding: 5px; display: block; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>🎉 TikTok OAuth Redirect Handler</h2>
+  <p>Extracted TikTok auth code and state:</p>
+  <p><strong>Auth Code:</strong></p>
+  <code id="code">Loading...</code>
+  <p><strong>State:</strong></p>
+  <code id="state">Loading...</code>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+
+    document.getElementById('code').textContent = code || 'No code found';
+    document.getElementById('state').textContent = state || 'No state found';
+
+    // Optional: Auto-copy to clipboard
+    if (code) {
+      navigator.clipboard.writeText(code).then(() => {
+        console.log('Code copied to clipboard!');
+      });
+    }
+  </script>
+</body>
+</html>
